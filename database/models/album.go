@@ -13,13 +13,15 @@ type Album struct {
 }
 
 func GetAlbums(db *sql.DB) ([]Album, error) {
-	var albums []Album
+	albums := []Album{}
 
 	rows, err := db.Query("SELECT * FROM album")
 	if err != nil {
 		return nil, fmt.Errorf("GetAlbums: %v", err)
 	}
+
 	defer rows.Close()
+
 	for rows.Next() {
 		var alb Album
 		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
@@ -27,22 +29,26 @@ func GetAlbums(db *sql.DB) ([]Album, error) {
 		}
 		albums = append(albums, alb)
 	}
+
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("GetAlbums: %v", err)
 	}
+
 	return albums, nil
 }
 
 // albumsByArtist queries for albums that have the specified artist name.
 func GetAlbumsByArtist(db *sql.DB, name string) ([]Album, error) {
 	// An albums slice to hold data from returned rows.
-	var albums []Album
+	albums := []Album{}
 
 	rows, err := db.Query("SELECT * FROM album WHERE artist = ?", name)
 	if err != nil {
 		return nil, fmt.Errorf("GetAlbumsByArtist %q: %v", name, err)
 	}
+
 	defer rows.Close()
+
 	// Loop through rows, using Scan to assign column data to struct fields.
 	for rows.Next() {
 		var alb Album
@@ -51,9 +57,11 @@ func GetAlbumsByArtist(db *sql.DB, name string) ([]Album, error) {
 		}
 		albums = append(albums, alb)
 	}
+
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("GetAlbumsByArtist %q: %v", name, err)
 	}
+
 	return albums, nil
 }
 
@@ -79,9 +87,11 @@ func AddAlbum(db *sql.DB, alb Album) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("AddAlbum: %v", err)
 	}
+
 	id, err := result.LastInsertId()
 	if err != nil {
 		return 0, fmt.Errorf("AddAlbum: %v", err)
 	}
+
 	return id, nil
 }

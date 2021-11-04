@@ -36,6 +36,20 @@ func readById(c *gin.Context) {
 	c.JSON(http.StatusOK, alb)
 }
 
+func listByArtist(c *gin.Context) {
+	artist := c.Param("name")
+	db := c.MustGet("db").(*sql.DB)
+
+	alb, err := models.GetAlbumsByArtist(db, artist)
+	if err != nil {
+		println("nil ?")
+		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, alb)
+}
+
 func create(c *gin.Context) {
 	var newAlbum models.Album
 

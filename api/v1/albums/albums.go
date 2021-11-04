@@ -7,6 +7,7 @@ func BuildRoutes(r *gin.RouterGroup) {
 	{
 		albums.GET("/", list)
 		albums.GET("/:id", readById)
+		albums.GET("/artist/:name", listByArtist)
 		albums.POST("/", create)
 	}
 }
