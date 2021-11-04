@@ -6,7 +6,7 @@ import (
 )
 
 type Album struct {
-	ID     string  `json:"id"`
+	ID     uint32  `json:"id"`
 	Title  string  `json:"title"`
 	Artist string  `json:"artist"`
 	Price  float64 `json:"price"`
@@ -66,7 +66,7 @@ func GetAlbumsByArtist(db *sql.DB, name string) ([]Album, error) {
 }
 
 // albumByID queries for the album with the specified ID.
-func GetAlbumByID(db *sql.DB, id int64) (Album, error) {
+func GetAlbumByID(db *sql.DB, id uint64) (Album, error) {
 	// An album to hold data from the returned row.
 	var alb Album
 
