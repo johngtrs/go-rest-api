@@ -11,7 +11,13 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
+	var err error
+	if os.Getenv("GO_ENV") == "DOCKER-DEV" {
+		err = godotenv.Load(".env.docker")
+	} else {
+		err = godotenv.Load()
+	}
+
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
