@@ -1,17 +1,19 @@
 package albums
 
 import (
-	"database/sql"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	"github.com/johngtrs/go-rest-api/database/models"
 )
 
+type AlbumRepository = models.AlbumRepository
+
 func list(c *gin.Context) {
-	db := c.MustGet("db").(*sql.DB)
-	albums, err := models.GetAlbums(db)
+	albumRepository := AlbumRepository{DB: c.MustGet("db").(*sqlx.DB)}
+	albums, err := albumRepository.FindAll()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
@@ -26,8 +28,8 @@ func readById(c *gin.Context) {
 		return
 	}
 
-	db := c.MustGet("db").(*sql.DB)
-	alb, err := models.GetAlbumByID(db, id)
+	albumRepository := AlbumRepository{DB: c.MustGet("db").(*sqlx.DB)}
+	alb, err := albumRepository.FindFirst(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
@@ -38,11 +40,10 @@ func readById(c *gin.Context) {
 
 func listByArtist(c *gin.Context) {
 	artist := c.Param("name")
-	db := c.MustGet("db").(*sql.DB)
 
-	alb, err := models.GetAlbumsByArtist(db, artist)
+	albumRepository := AlbumRepository{DB: c.MustGet("db").(*sqlx.DB)}
+	alb, err := albumRepository.FindByArtist(artist)
 	if err != nil {
-		println("nil ?")
 		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
 	}
@@ -58,8 +59,8 @@ func create(c *gin.Context) {
 		return
 	}
 
-	db := c.MustGet("db").(*sql.DB)
-	albumID, err := models.AddAlbum(db, newAlbum)
+	albumRepository := AlbumRepository{DB: c.MustGet("db").(*sqlx.DB)}
+	albumID, err := albumRepository.AddAlbum(newAlbum)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return

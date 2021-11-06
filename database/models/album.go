@@ -1,9 +1,14 @@
 package models
 
 import (
-	"database/sql"
 	"fmt"
+
+	"github.com/jmoiron/sqlx"
 )
+
+type AlbumRepository struct {
+	*sqlx.DB
+}
 
 type Album struct {
 	ID     uint32  `json:"id"`
@@ -12,78 +17,47 @@ type Album struct {
 	Price  float64 `json:"price"`
 }
 
-func GetAlbums(db *sql.DB) ([]Album, error) {
+const modelName = "album"
+
+func (r *AlbumRepository) FindAll() ([]Album, error) {
 	albums := []Album{}
 
-	rows, err := db.Query("SELECT * FROM album")
+	err := r.DB.Select(&albums, "SELECT * FROM "+modelName)
 	if err != nil {
-		return nil, fmt.Errorf("GetAlbums: %v", err)
-	}
-
-	defer rows.Close()
-
-	for rows.Next() {
-		var alb Album
-		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
-			return nil, fmt.Errorf("GetAlbums: %v", err)
-		}
-		albums = append(albums, alb)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("GetAlbums: %v", err)
-	}
-
-	return albums, nil
-}
-
-// albumsByArtist queries for albums that have the specified artist name.
-func GetAlbumsByArtist(db *sql.DB, name string) ([]Album, error) {
-	// An albums slice to hold data from returned rows.
-	albums := []Album{}
-
-	rows, err := db.Query("SELECT * FROM album WHERE artist = ?", name)
-	if err != nil {
-		return nil, fmt.Errorf("GetAlbumsByArtist %q: %v", name, err)
-	}
-
-	defer rows.Close()
-
-	// Loop through rows, using Scan to assign column data to struct fields.
-	for rows.Next() {
-		var alb Album
-		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
-			return nil, fmt.Errorf("GetAlbumsByArtist %q: %v", name, err)
-		}
-		albums = append(albums, alb)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("GetAlbumsByArtist %q: %v", name, err)
+		return nil, fmt.Errorf("Album.FindAll: %v", err)
 	}
 
 	return albums, nil
 }
 
 // albumByID queries for the album with the specified ID.
-func GetAlbumByID(db *sql.DB, id uint64) (Album, error) {
-	// An album to hold data from the returned row.
+func (r *AlbumRepository) FindFirst(id uint64) (Album, error) {
 	var alb Album
 
-	row := db.QueryRow("SELECT * FROM album WHERE id = ?", id)
-	if err := row.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
-		if err == sql.ErrNoRows {
-			return alb, fmt.Errorf("GetAlbumByID %d: no such album", id)
-		}
-		return alb, fmt.Errorf("GetAlbumByID %d: %v", id, err)
+	err := r.DB.Get(&alb, "SELECT * FROM album WHERE id = ?", id)
+	if err != nil {
+		return alb, fmt.Errorf("Album not found")
 	}
 	return alb, nil
 }
 
+// albumsByArtist queries for albums that have the specified artist name.
+func (r *AlbumRepository) FindByArtist(name string) ([]Album, error) {
+	// An albums slice to hold data from returned rows.
+	albums := []Album{}
+
+	err := r.DB.Select(&albums, "SELECT * FROM album WHERE artist = ?", name)
+	if err != nil {
+		return nil, fmt.Errorf("GetAlbumsByArtist %q: %v", name, err)
+	}
+
+	return albums, nil
+}
+
 // AddAlbum adds the specified album to the database,
 // returning the album ID of the new entry
-func AddAlbum(db *sql.DB, alb Album) (int64, error) {
-	result, err := db.Exec("INSERT INTO album (title, artist, price) VALUES (?, ?, ?)", alb.Title, alb.Artist, alb.Price)
+func (r *AlbumRepository) AddAlbum(alb Album) (int64, error) {
+	result, err := r.DB.Exec("INSERT INTO album (title, artist, price) VALUES (?, ?, ?)", alb.Title, alb.Artist, alb.Price)
 	if err != nil {
 		return 0, fmt.Errorf("AddAlbum: %v", err)
 	}

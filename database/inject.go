@@ -1,12 +1,11 @@
 package database
 
 import (
-	"database/sql"
-
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 )
 
-func Inject(db *sql.DB) gin.HandlerFunc {
+func Inject(db *sqlx.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("db", db)
 		c.Next()

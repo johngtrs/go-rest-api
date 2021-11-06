@@ -1,14 +1,14 @@
 package database
 
 import (
-	"database/sql"
 	"log"
 	"os"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 )
 
-func Initialize() (*sql.DB, error) {
+func Initialize() (*sqlx.DB, error) {
 	cfg := mysql.Config{
 		User:                 os.Getenv("MYSQL_USER"),
 		Passwd:               os.Getenv("MYSQL_PASSWORD"),
@@ -20,7 +20,7 @@ func Initialize() (*sql.DB, error) {
 
 	// Get a database handle
 	var err error
-	db, err := sql.Open("mysql", cfg.FormatDSN())
+	db, err := sqlx.Open("mysql", cfg.FormatDSN())
 	if err != nil {
 		log.Fatal(err)
 	}
