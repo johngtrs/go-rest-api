@@ -4,7 +4,7 @@ type AlbumService interface {
 	ListService() ([]Album, error)
 	readByIdService(id string) (Album, error)
 	listByArtistService(name string) ([]Album, error)
-	createService(alb Album) (int64, error)
+	createService(album Album) (int64, error)
 }
 
 type Service struct {

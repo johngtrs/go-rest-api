@@ -10,7 +10,7 @@ type AlbumRepository interface {
 	FindAll() ([]Album, error)
 	FindFirst(id string) (Album, error)
 	FindByArtist(name string) ([]Album, error)
-	AddAlbum(alb Album) (int64, error)
+	AddAlbum(album Album) (int64, error)
 }
 
 type Repository struct {
@@ -35,13 +35,14 @@ func (r *Repository) FindAll() ([]Album, error) {
 }
 
 func (r *Repository) FindFirst(id string) (Album, error) {
-	var alb Album
+	var album Album
 
-	err := r.db.Get(&alb, "SELECT * FROM "+table+" WHERE id = ?", id)
+	err := r.db.Get(&album, "SELECT * FROM "+table+" WHERE id = ?", id)
 	if err != nil {
-		return alb, fmt.Errorf("Album not found")
+		return album, fmt.Errorf("Album not found")
 	}
-	return alb, nil
+
+	return album, nil
 }
 
 func (r *Repository) FindByArtist(name string) ([]Album, error) {
