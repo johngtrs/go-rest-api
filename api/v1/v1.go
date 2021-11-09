@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/johngtrs/go-rest-api/api/v1/albums"
-	"github.com/johngtrs/go-rest-api/api/v1/movies"
+	"github.com/jmoiron/sqlx"
+	"github.com/johngtrs/go-rest-api/api/v1/album"
+	"github.com/johngtrs/go-rest-api/api/v1/movie"
 )
 
 func ping(c *gin.Context) {
@@ -14,11 +15,10 @@ func ping(c *gin.Context) {
 	})
 }
 
-func BuildRoutes(r *gin.RouterGroup) {
+func BuildRoutes(r *gin.RouterGroup, db *sqlx.DB) {
 	v1 := r.Group("/v1")
-	{
-		v1.GET("/ping", ping)
-		albums.BuildRoutes(v1)
-		movies.BuildRoutes(v1)
-	}
+
+	v1.GET("/ping", ping)
+	album.BuildRoutes(v1, db)
+	movie.BuildRoutes(v1, db)
 }

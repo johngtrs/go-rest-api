@@ -6,7 +6,7 @@ import (
 )
 
 type Movie struct {
-	ID         uint32 `json:"id"`
+	ID         string `json:"id"`
 	Year       uint16 `json:"year"`
 	RentNumber uint32 `json:"rent_number"`
 	Title      string `json:"title"`

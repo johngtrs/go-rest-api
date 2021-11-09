@@ -28,7 +28,6 @@ func main() {
 	}
 
 	app := gin.Default()
-	app.Use(database.Inject(db))
-	api.BuildRoutes(app)
+	api.BuildRoutes(app, db)
 	app.Run(":" + os.Getenv("GO_LOCAL_PORT"))
 }
