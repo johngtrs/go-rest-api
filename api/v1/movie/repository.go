@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/johngtrs/go-rest-api/utils"
 )
 
 type MovieRepository interface {
@@ -135,16 +136,17 @@ func (r *Repository) AddMovie(movie Movie) (int64, error) {
 func (r *Repository) IncrementRentedNumber(title string, year string) error {
 	var movie Movie
 
-	errSelect := r.db.Get(&movie, "SELECT * FROM movie WHERE title=? AND year=?", title, year)
-	if errSelect != nil {
+	err := r.db.Get(&movie, "SELECT * FROM movie WHERE title=? AND year=?", title, year)
+	if err != nil {
+		utils.Glogger("IncrementRentedNumber", err.Error())
 		return fmt.Errorf("Movie not found")
 	}
 
 	sql := "UPDATE " + table + " SET rent_number = rent_number + 1 WHERE title=? AND year=?"
 
-	_, errUpdate := r.db.Exec(sql, title, year)
-	if errUpdate != nil {
-		return fmt.Errorf("IncrementRentedNumber: %v", errUpdate)
+	_, err = r.db.Exec(sql, title, year)
+	if err != nil {
+		return fmt.Errorf("IncrementRentedNumber: %v", err)
 	}
 
 	return nil
