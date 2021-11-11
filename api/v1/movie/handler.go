@@ -78,13 +78,13 @@ func (h *Handler) MostRentedYear(c *gin.Context) {
 }
 
 func (h *Handler) BestAuthor(c *gin.Context) {
-	movie, err := h.service.BestAuthorService()
+	author, err := h.service.BestAuthorService()
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, movie)
+	c.JSON(http.StatusOK, author)
 }
 
 func (h *Handler) SearchTitle(c *gin.Context) {
@@ -127,5 +127,5 @@ func (h *Handler) IncrementRentedNumber(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Rented number updated"})
+	c.JSON(http.StatusOK, gin.H{"message": "Rented number updated"})
 }

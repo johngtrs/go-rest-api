@@ -46,7 +46,15 @@ func (s *Service) MostRentedYearService(year string) (Movie, error) {
 }
 
 func (s *Service) BestAuthorService() (map[string]string, error) {
-	return s.repository.FindBestAuthor()
+	author, err := s.repository.FindBestAuthor()
+	if err != nil {
+		return nil, err
+	}
+
+	data := make(map[string]string)
+	data["author"] = author
+
+	return data, nil
 }
 
 func (s *Service) SearchByTitleService(title string) ([]Movie, error) {

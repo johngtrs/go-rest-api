@@ -12,7 +12,7 @@ type MovieRepository interface {
 	FindFirst(id string) (Movie, error)
 	MostRentedList(year string, limit int) ([]Movie, error)
 	MostRented(year string) (Movie, error)
-	FindBestAuthor() (map[string]string, error)
+	FindBestAuthor() (string, error)
 	FindByTitle(title string) ([]Movie, error)
 	AddMovie(movie Movie) (int64, error)
 	IncrementRentedNumber(title string, year string) error
@@ -88,7 +88,7 @@ func (r *Repository) MostRented(year string) (Movie, error) {
 	return movie, nil
 }
 
-func (r *Repository) FindBestAuthor() (map[string]string, error) {
+func (r *Repository) FindBestAuthor() (string, error) {
 	var movie Movie
 	var err error
 
@@ -96,13 +96,10 @@ func (r *Repository) FindBestAuthor() (map[string]string, error) {
 	err = r.db.Get(&movie, sql)
 
 	if err != nil {
-		return nil, fmt.Errorf("Movie.FindBestAuthor: %v", err)
+		return "", fmt.Errorf("Movie.FindBestAuthor: %v", err)
 	}
 
-	data := make(map[string]string)
-	data["author"] = movie.Author
-
-	return data, nil
+	return movie.Author, nil
 }
 
 func (r *Repository) FindByTitle(title string) ([]Movie, error) {
