@@ -11,26 +11,31 @@ const gloggerFile = "glogger.log"
 const tmpFile = "tmp.log"
 
 func Glogger(prefix string, message string) {
-	glogger, err := os.Open(gloggerFile)
-	if err != nil {
-		panic(err)
-	}
-	defer glogger.Close()
-
-	dest, err := os.Create(tmpFile)
+	tmp, err := os.Create(tmpFile)
 	if err != nil {
 		panic(err)
 	}
 
-	defer dest.Close()
+	defer tmp.Close()
 
-	totalBytes, err := glogger.Stat()
-	if err != nil {
-		panic(err)
+	// Check if glooger file exists
+	if _, err := os.Stat(gloggerFile); err == nil {
+		glogger, err := os.Open(gloggerFile)
+		if err != nil {
+			panic(err)
+		}
+
+		defer glogger.Close()
+
+		totalBytes, err := glogger.Stat()
+		if err != nil {
+			panic(err)
+		}
+
+		io.CopyN(tmp, glogger, totalBytes.Size()-gopherSize)
 	}
 
-	io.CopyN(dest, glogger, totalBytes.Size()-gopherSize)
-	logger := log.New(dest, prefix+" : ", log.LstdFlags)
+	logger := log.New(tmp, prefix+" : ", log.LstdFlags)
 	logger.Println(message)
 
 	drawGoopher()
@@ -38,8 +43,10 @@ func Glogger(prefix string, message string) {
 }
 
 func replaceTmpFile() {
-	if err := os.Remove(gloggerFile); err != nil {
-		panic(err)
+	if _, err := os.Stat(gloggerFile); err == nil {
+		if err := os.Remove(gloggerFile); err != nil {
+			panic(err)
+		}
 	}
 
 	if err := os.Rename(tmpFile, gloggerFile); err != nil {
