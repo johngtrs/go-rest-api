@@ -6,11 +6,19 @@ import (
 	"os"
 )
 
-const gopherSize = 1934
-const gloggerFile = "glogger.log"
-const tmpFile = "tmp.log"
+const (
+	gopherSize   = 1934
+	gloggerFile  = "glogger.log"
+	tmpFile      = "tmp.log"
+	InfoColor    = "\033[1;34m%s\033[0m"
+	NoticeColor  = "\033[1;36m%s\033[0m"
+	WarningColor = "\033[1;33m%s\033[0m"
+	ErrorColor   = "\033[1;31m%s\033[0m"
+	DebugColor   = "\033[0;36m%s\033[0m"
+)
 
 func Glogger(prefix string, message string) {
+	// Create temp file
 	tmp, err := os.Create(tmpFile)
 	if err != nil {
 		panic(err)
@@ -18,7 +26,8 @@ func Glogger(prefix string, message string) {
 
 	defer tmp.Close()
 
-	// Check if glooger file exists
+	// Check if glogger file exists open and copy until the gopher
+	// to the temp file
 	if _, err := os.Stat(gloggerFile); err == nil {
 		glogger, err := os.Open(gloggerFile)
 		if err != nil {
@@ -35,8 +44,12 @@ func Glogger(prefix string, message string) {
 		io.CopyN(tmp, glogger, totalBytes.Size()-gopherSize)
 	}
 
+	// Add log in the file
 	logger := log.New(tmp, prefix+" : ", log.LstdFlags)
 	logger.Println(message)
+
+	// Print log in the terminal
+	log.Printf(ErrorColor, prefix+" : "+message)
 
 	drawGoopher()
 	replaceTmpFile()

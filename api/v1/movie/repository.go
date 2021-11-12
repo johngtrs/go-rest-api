@@ -1,7 +1,6 @@
 package movie
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
@@ -34,7 +33,8 @@ func (r *Repository) FindAll() ([]Movie, error) {
 
 	err := r.db.Select(&movies, "SELECT * FROM "+table)
 	if err != nil {
-		return nil, fmt.Errorf("Movie.FindAll: %v", err)
+		utils.Glogger("Movie.FindAll", err.Error())
+		return nil, utils.ErrInternalServerError
 	}
 
 	return movies, nil
@@ -45,7 +45,8 @@ func (r *Repository) FindFirst(id string) (Movie, error) {
 
 	err := r.db.Get(&movie, "SELECT * FROM "+table+" WHERE id = ?", id)
 	if err != nil {
-		return movie, fmt.Errorf("Movie not found")
+		utils.Glogger("Movie.FindFirst", err.Error())
+		return movie, utils.ErrNotFound
 	}
 
 	return movie, nil
@@ -64,7 +65,8 @@ func (r *Repository) MostRentedList(year string, limit int) ([]Movie, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("Movie.MostRentedList: %v", err)
+		utils.Glogger("Movie.MostRentedList", err.Error())
+		return nil, utils.ErrInternalServerError
 	}
 
 	return movies, nil
@@ -83,7 +85,8 @@ func (r *Repository) MostRented(year string) (Movie, error) {
 	}
 
 	if err != nil {
-		return movie, fmt.Errorf("Movie.MostRented: %v", err)
+		utils.Glogger("Movie.MostRented", err.Error())
+		return movie, utils.ErrNotFound
 	}
 
 	return movie, nil
@@ -97,7 +100,8 @@ func (r *Repository) FindBestAuthor() (string, error) {
 	err = r.db.Get(&movie, sql)
 
 	if err != nil {
-		return "", fmt.Errorf("Movie.FindBestAuthor: %v", err)
+		utils.Glogger("Movie.FindBestAuthor", err.Error())
+		return "", utils.ErrNotFound
 	}
 
 	return movie.Author, nil
@@ -108,7 +112,8 @@ func (r *Repository) FindByTitle(title string) ([]Movie, error) {
 
 	err := r.db.Select(&movies, "SELECT * FROM "+table+" WHERE title LIKE ?", "%"+title+"%")
 	if err != nil {
-		return nil, fmt.Errorf("Movie.FindByTitle %q: %v", title, err)
+		utils.Glogger("Movie.FindByTitle", err.Error())
+		return nil, utils.ErrInternalServerError
 	}
 
 	return movies, nil
@@ -122,12 +127,14 @@ func (r *Repository) AddMovie(movie Movie) (int64, error) {
 	result, err := r.db.Exec(sql, movie.Year, movie.RentNumber, movie.Title, movie.Author,
 		movie.Editor, movie.Index, movie.Bib, movie.Ref, movie.Cat1, movie.Cat2)
 	if err != nil {
-		return 0, fmt.Errorf("AddMovie: %v", err)
+		utils.Glogger("Movie.AddMovie", err.Error())
+		return 0, utils.ErrInternalServerError
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("AddMovie: %v", err)
+		utils.Glogger("Movie.AddMovie", err.Error())
+		return 0, utils.ErrInternalServerError
 	}
 
 	return id, nil
@@ -138,15 +145,16 @@ func (r *Repository) IncrementRentedNumber(title string, year string) error {
 
 	err := r.db.Get(&movie, "SELECT * FROM movie WHERE title=? AND year=?", title, year)
 	if err != nil {
-		utils.Glogger("IncrementRentedNumber", err.Error())
-		return fmt.Errorf("Movie not found")
+		utils.Glogger("Movie.IncrementRentedNumber", err.Error())
+		return utils.ErrNotFound
 	}
 
 	sql := "UPDATE " + table + " SET rent_number = rent_number + 1 WHERE title=? AND year=?"
 
 	_, err = r.db.Exec(sql, title, year)
 	if err != nil {
-		return fmt.Errorf("IncrementRentedNumber: %v", err)
+		utils.Glogger("Movie.IncrementRentedNumber", err.Error())
+		return utils.ErrInternalServerError
 	}
 
 	return nil

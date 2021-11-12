@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/johngtrs/go-rest-api/api"
 	"github.com/johngtrs/go-rest-api/database"
+	"github.com/johngtrs/go-rest-api/middleware"
 	"github.com/joho/godotenv"
 )
 
@@ -28,6 +29,7 @@ func main() {
 	}
 
 	app := gin.Default()
+	app.Use(middleware.ErrorHandler)
 	api.BuildRoutes(app, db)
 	app.Run(":" + os.Getenv("GO_LOCAL_PORT"))
 }

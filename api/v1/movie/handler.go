@@ -17,18 +17,23 @@ func NewMovieHandler(service MovieService) *Handler {
 
 func (h *Handler) List(c *gin.Context) {
 	movies, err := h.service.ListService()
+
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
+
 	c.JSON(http.StatusOK, movies)
 }
 
 func (h *Handler) ReadById(c *gin.Context) {
 	id := c.Param("id")
+
 	movie, err := h.service.readByIdService(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -38,7 +43,8 @@ func (h *Handler) ReadById(c *gin.Context) {
 func (h *Handler) Top100(c *gin.Context) {
 	movies, err := h.service.Top100Service()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -47,9 +53,11 @@ func (h *Handler) Top100(c *gin.Context) {
 
 func (h *Handler) Top100Year(c *gin.Context) {
 	year := c.Param("year")
+
 	movies, err := h.service.Top100YearService(year)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -59,7 +67,8 @@ func (h *Handler) Top100Year(c *gin.Context) {
 func (h *Handler) MostRented(c *gin.Context) {
 	movie, err := h.service.MostRentedService()
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -68,9 +77,11 @@ func (h *Handler) MostRented(c *gin.Context) {
 
 func (h *Handler) MostRentedYear(c *gin.Context) {
 	year := c.Param("year")
+
 	movie, err := h.service.MostRentedYearService(year)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -80,7 +91,8 @@ func (h *Handler) MostRentedYear(c *gin.Context) {
 func (h *Handler) BestAuthor(c *gin.Context) {
 	author, err := h.service.BestAuthorService()
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -89,9 +101,11 @@ func (h *Handler) BestAuthor(c *gin.Context) {
 
 func (h *Handler) SearchTitle(c *gin.Context) {
 	title := c.Param("title")
+
 	movies, err := h.service.SearchByTitleService(title)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -108,9 +122,11 @@ func (h *Handler) Create(c *gin.Context) {
 
 	movieID, err := h.service.createService(newMovie)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
+
 	c.JSON(http.StatusCreated, gin.H{"id": movieID})
 }
 
@@ -118,14 +134,16 @@ func (h *Handler) IncrementRentedNumber(c *gin.Context) {
 	var movie Movie
 
 	if err := c.BindJSON(&movie); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	err := h.service.IncrementRentedNumberService(movie.Title, strconv.Itoa(int(movie.Year)))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Rented number updated"})
 }
