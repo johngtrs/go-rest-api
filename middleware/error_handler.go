@@ -1,48 +1,43 @@
 package middleware
 
 import (
+	"bytes"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/johngtrs/go-rest-api/utils"
+	"github.com/johngtrs/go-rest-api/httperror"
 )
+
+type bodyLogWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+func (w bodyLogWriter) Write(b []byte) (int, error) {
+	w.body.Write(b)
+	return w.ResponseWriter.Write(b)
+}
 
 func ErrorHandler(c *gin.Context) {
 	c.Next()
 
-loopErrors:
+	responseErrors := map[error]int{
+		httperror.ErrBadRequest:          http.StatusBadRequest,          // 400
+		httperror.ErrUnauthorized:        http.StatusUnauthorized,        // 401
+		httperror.ErrPaymentRequired:     http.StatusPaymentRequired,     // 402
+		httperror.ErrForbidden:           http.StatusForbidden,           // 403
+		httperror.ErrNotFound:            http.StatusNotFound,            // 404
+		httperror.ErrMethodNotAllowed:    http.StatusMethodNotAllowed,    // 405
+		httperror.ErrNotAcceptable:       http.StatusNotAcceptable,       // 406
+		httperror.ErrConflict:            http.StatusConflict,            // 409
+		httperror.ErrInternalServerError: http.StatusInternalServerError, // 500
+	}
+
 	for _, err := range c.Errors {
-		switch err.Err {
-		case utils.ErrBadRequest:
-			c.JSON(http.StatusBadRequest, gin.H{"error": utils.ErrBadRequest.Error()})
-			break loopErrors
-		case utils.ErrUnauthorized:
-			c.JSON(http.StatusUnauthorized, gin.H{"error": utils.ErrUnauthorized.Error()})
-			break loopErrors
-		case utils.ErrPaymentRequired:
-			c.JSON(http.StatusPaymentRequired, gin.H{"error": utils.ErrPaymentRequired.Error()})
-			break loopErrors
-		case utils.ErrForbidden:
-			c.JSON(http.StatusForbidden, gin.H{"error": utils.ErrForbidden.Error()})
-			break loopErrors
-		case utils.ErrNotFound:
-			c.JSON(http.StatusNotFound, gin.H{"error": utils.ErrNotFound.Error()})
-			break loopErrors
-		case utils.ErrMethodNotAllowed:
-			c.JSON(http.StatusMethodNotAllowed, gin.H{"error": utils.ErrMethodNotAllowed.Error()})
-			break loopErrors
-		case utils.ErrNotAcceptable:
-			c.JSON(http.StatusNotAcceptable, gin.H{"error": utils.ErrNotAcceptable.Error()})
-			break loopErrors
-		case utils.ErrConflict:
-			c.JSON(http.StatusConflict, gin.H{"error": utils.ErrConflict.Error()})
-			break loopErrors
-		case utils.ErrInternalServerError:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": utils.ErrInternalServerError.Error()})
-			break loopErrors
-		default:
-			c.JSON(-1, gin.H{"error": err.Err.Error()})
-			break loopErrors
+		// Check if the current error exists in the responseErrors array
+		if code, ok := responseErrors[err.Err]; ok {
+			c.JSON(code, gin.H{"error": err.Err.Error()})
+			return
 		}
 	}
 }

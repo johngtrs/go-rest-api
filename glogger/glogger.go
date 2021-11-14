@@ -1,4 +1,4 @@
-package utils
+package glogger
 
 import (
 	"io"
@@ -17,7 +17,7 @@ const (
 	DebugColor   = "\033[0;36m%s\033[0m"
 )
 
-func Glogger(prefix string, message string) {
+func Log(prefix string, message string) {
 	// Create temp file
 	tmp, err := os.Create(tmpFile)
 	if err != nil {

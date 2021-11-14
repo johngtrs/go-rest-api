@@ -17,7 +17,6 @@ func NewMovieHandler(service MovieService) *Handler {
 
 func (h *Handler) List(c *gin.Context) {
 	movies, err := h.service.ListService()
-
 	if err != nil {
 		c.Error(err)
 		c.Abort()
@@ -134,7 +133,7 @@ func (h *Handler) IncrementRentedNumber(c *gin.Context) {
 	var movie Movie
 
 	if err := c.BindJSON(&movie); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 

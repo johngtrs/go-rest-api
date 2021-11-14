@@ -29,7 +29,9 @@ func main() {
 	}
 
 	app := gin.Default()
+
 	app.Use(middleware.ErrorHandler)
+
 	api.BuildRoutes(app, db)
 	app.Run(":" + os.Getenv("GO_LOCAL_PORT"))
 }
