@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/johngtrs/go-rest-api/database"
 	"github.com/johngtrs/go-rest-api/glogger"
 	"github.com/johngtrs/go-rest-api/httperror"
 )
@@ -34,7 +35,9 @@ func NewMovieRepository(db *sqlx.DB) *Repository {
 func (r *Repository) FindAll() ([]Movie, error) {
 	movies := []Movie{}
 
-	err := r.db.Select(&movies, "SELECT * FROM "+table)
+	// err := r.db.Select(&movies, "SELECT * FROM "+table)
+	builder := database.NewQueryBuilder(r.db, &movies)
+	err := builder.Select("*").From(table).Exec()
 	if err != nil {
 		glogger.Log("Movie.FindAll", err.Error())
 		return nil, httperror.ErrInternalServerError
@@ -47,7 +50,9 @@ func (r *Repository) FindAll() ([]Movie, error) {
 func (r *Repository) FindFirst(id string) (Movie, error) {
 	var movie Movie
 
-	err := r.db.Get(&movie, "SELECT * FROM "+table+" WHERE id = ?", id)
+	// err := r.db.Get(&movie, "SELECT * FROM "+table+" WHERE id = ?", id)
+	builder := database.NewQueryBuilder(r.db, &movie)
+	err := builder.Select("*").From(table).Where("id = ?", id).ExecOne()
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return movie, httperror.ErrNotFound
@@ -166,6 +171,7 @@ func (r *Repository) AddMovie(movie Movie) (int64, error) {
 func (r *Repository) IncrementRentedNumber(title string, year string) error {
 	var movie Movie
 
+	// Check if the movie exists
 	err := r.db.Get(&movie, "SELECT * FROM movie WHERE title=? AND year=?", title, year)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -176,7 +182,6 @@ func (r *Repository) IncrementRentedNumber(title string, year string) error {
 	}
 
 	q := "UPDATE " + table + " SET rent_number = rent_number + 1 WHERE title=? AND year=?"
-
 	_, err = r.db.Exec(q, title, year)
 	if err != nil {
 		glogger.Log("Movie.IncrementRentedNumber", err.Error())
