@@ -2,7 +2,6 @@ package movie
 
 import (
 	"database/sql"
-	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/johngtrs/go-rest-api/database"
@@ -34,10 +33,9 @@ func NewMovieRepository(db *sqlx.DB) *Repository {
 // Get all movies.
 func (r *Repository) FindAll() ([]Movie, error) {
 	movies := []Movie{}
-
-	// err := r.db.Select(&movies, "SELECT * FROM "+table)
 	builder := database.NewQueryBuilder(r.db, &movies)
-	err := builder.Select("*").From(table).Exec()
+
+	err := builder.Select("*").From(table, "").Exec()
 	if err != nil {
 		glogger.Log("Movie.FindAll", err.Error())
 		return nil, httperror.ErrInternalServerError
@@ -49,10 +47,9 @@ func (r *Repository) FindAll() ([]Movie, error) {
 // Get the first movie with the requested id.
 func (r *Repository) FindFirst(id string) (Movie, error) {
 	var movie Movie
-
-	// err := r.db.Get(&movie, "SELECT * FROM "+table+" WHERE id = ?", id)
 	builder := database.NewQueryBuilder(r.db, &movie)
-	err := builder.Select("*").From(table).Where("id = ?", id).ExecOne()
+
+	err := builder.Select("*").From(table, "").Where("id = ?", id).ExecOne()
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return movie, httperror.ErrNotFound
@@ -70,13 +67,21 @@ func (r *Repository) FindFirst(id string) (Movie, error) {
 func (r *Repository) MostRentedList(year string, limit int) ([]Movie, error) {
 	movies := []Movie{}
 	var err error
+	builder := database.NewQueryBuilder(r.db, &movies)
 
 	if year != "" {
-		q := "SELECT * FROM " + table + " WHERE year = ? ORDER BY rent_number DESC LIMIT " + strconv.Itoa(limit)
-		err = r.db.Select(&movies, q, year)
+		err = builder.Select("*").
+			From(table, "").
+			Where("year = ?", year).
+			OrderBy("rent_number DESC").
+			Limit(limit).
+			Exec()
 	} else {
-		q := "SELECT * FROM " + table + " ORDER BY rent_number DESC LIMIT " + strconv.Itoa(limit)
-		err = r.db.Select(&movies, q)
+		err = builder.Select("*").
+			From(table, "").
+			OrderBy("rent_number DESC").
+			Limit(limit).
+			Exec()
 	}
 
 	if err != nil {
@@ -93,13 +98,19 @@ func (r *Repository) MostRentedList(year string, limit int) ([]Movie, error) {
 func (r *Repository) MostRented(year string) (Movie, error) {
 	var movie Movie
 	var err error
+	builder := database.NewQueryBuilder(r.db, &movie)
 
 	if year != "" {
-		q := "SELECT * FROM " + table + " WHERE year = ? ORDER BY rent_number DESC"
-		err = r.db.Get(&movie, q, year)
+		err = builder.Select("*").
+			From(table, "").
+			Where("year = ?", year).
+			OrderBy("rent_number DESC").
+			ExecOne()
 	} else {
-		q := "SELECT * FROM " + table + " ORDER BY rent_number DESC"
-		err = r.db.Get(&movie, q)
+		err = builder.Select("*").
+			From(table, "").
+			OrderBy("rent_number DESC").
+			ExecOne()
 	}
 
 	if err != nil {
@@ -116,11 +127,12 @@ func (r *Repository) MostRented(year string) (Movie, error) {
 // Get the author with the higher rented number.
 func (r *Repository) FindBestAuthor() (string, error) {
 	var movie Movie
-	var err error
+	builder := database.NewQueryBuilder(r.db, &movie)
 
-	q := "SELECT author FROM " + table + " ORDER BY rent_number DESC"
-	err = r.db.Get(&movie, q)
-
+	err := builder.Select("author").
+		From(table, "").
+		OrderBy("rent_number DESC").
+		ExecOne()
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", httperror.ErrNotFound
@@ -135,8 +147,12 @@ func (r *Repository) FindBestAuthor() (string, error) {
 // Search movies by %title%.
 func (r *Repository) FindByTitle(title string) ([]Movie, error) {
 	movies := []Movie{}
+	builder := database.NewQueryBuilder(r.db, &movies)
 
-	err := r.db.Select(&movies, "SELECT * FROM "+table+" WHERE title LIKE ?", "%"+title+"%")
+	err := builder.Select("*").
+		From(table, "").
+		Where("title LIKE ?", "%"+title+"%").
+		Exec()
 	if err != nil {
 		glogger.Log("Movie.FindByTitle", err.Error())
 		return nil, httperror.ErrInternalServerError
@@ -170,9 +186,11 @@ func (r *Repository) AddMovie(movie Movie) (int64, error) {
 // Increment the rented number with the requested title and year.
 func (r *Repository) IncrementRentedNumber(title string, year string) error {
 	var movie Movie
+	builder := database.NewQueryBuilder(r.db, &movie)
 
 	// Check if the movie exists
-	err := r.db.Get(&movie, "SELECT * FROM movie WHERE title=? AND year=?", title, year)
+	err := builder.Select("*").From(table, "").
+		Where("title = ? AND year = ?", title, year).ExecOne()
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return httperror.ErrNotFound

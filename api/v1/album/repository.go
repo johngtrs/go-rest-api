@@ -1,9 +1,12 @@
 package album
 
 import (
-	"fmt"
+	"database/sql"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/johngtrs/go-rest-api/database"
+	"github.com/johngtrs/go-rest-api/glogger"
+	"github.com/johngtrs/go-rest-api/httperror"
 )
 
 type AlbumRepository interface {
@@ -24,11 +27,13 @@ func NewAlbumRepository(db *sqlx.DB) *Repository {
 }
 
 func (r *Repository) FindAll() ([]Album, error) {
-	albums := []Album{}
+	var albums []Album
+	builder := database.NewQueryBuilder(r.db, &albums)
 
-	err := r.db.Select(&albums, "SELECT * FROM "+table)
+	err := builder.Select("*").From(table, "").Exec()
 	if err != nil {
-		return nil, fmt.Errorf("Album.FindAll: %v", err)
+		glogger.Log("Album.FindAll", err.Error())
+		return nil, httperror.ErrInternalServerError
 	}
 
 	return albums, nil
@@ -36,10 +41,15 @@ func (r *Repository) FindAll() ([]Album, error) {
 
 func (r *Repository) FindFirst(id string) (Album, error) {
 	var album Album
+	builder := database.NewQueryBuilder(r.db, &album)
 
-	err := r.db.Get(&album, "SELECT * FROM "+table+" WHERE id = ?", id)
+	err := builder.Select("*").From(table, "").Where("id = ?", id).ExecOne()
 	if err != nil {
-		return album, fmt.Errorf("Album not found")
+		if err == sql.ErrNoRows {
+			return album, httperror.ErrNotFound
+		}
+		glogger.Log("Album.FindFirst", err.Error())
+		return album, httperror.ErrInternalServerError
 	}
 
 	return album, nil
@@ -47,10 +57,12 @@ func (r *Repository) FindFirst(id string) (Album, error) {
 
 func (r *Repository) FindByArtist(name string) ([]Album, error) {
 	albums := []Album{}
+	builder := database.NewQueryBuilder(r.db, &albums)
 
-	err := r.db.Select(&albums, "SELECT * FROM "+table+" WHERE artist = ?", name)
+	err := builder.Select("*").From(table, "").Where("artist = ?", name).Exec()
 	if err != nil {
-		return nil, fmt.Errorf("FindByArtist %q: %v", name, err)
+		glogger.Log("Album.FindByArtist", err.Error())
+		return nil, httperror.ErrInternalServerError
 	}
 
 	return albums, nil
@@ -59,12 +71,14 @@ func (r *Repository) FindByArtist(name string) ([]Album, error) {
 func (r *Repository) AddAlbum(album Album) (int64, error) {
 	result, err := r.db.Exec("INSERT INTO "+table+" (title, artist, price) VALUES (?, ?, ?)", album.Title, album.Artist, album.Price)
 	if err != nil {
-		return 0, fmt.Errorf("AddAlbum: %v", err)
+		glogger.Log("Album.AddAlbum", err.Error())
+		return 0, httperror.ErrInternalServerError
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("AddAlbum: %v", err)
+		glogger.Log("Album.AddAlbum", err.Error())
+		return 0, httperror.ErrInternalServerError
 	}
 
 	return id, nil

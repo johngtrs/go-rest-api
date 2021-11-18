@@ -28,28 +28,28 @@ func (b *QueryBuilder) Select(cols string) *QueryBuilder {
 	return b
 }
 
-func (b *QueryBuilder) From(table string) *QueryBuilder {
-	b.stmtFrom = "FROM " + table + " "
+func (b *QueryBuilder) From(table string, alias string) *QueryBuilder {
+	b.stmtFrom = "FROM " + table + " " + alias + " "
 	return b
 }
 
-func (b *QueryBuilder) Join(table string, condition string) *QueryBuilder {
-	b.stmtFrom += "JOIN " + table + " ON (" + condition + ") "
+func (b *QueryBuilder) Join(table string, alias string, condition string) *QueryBuilder {
+	b.stmtFrom += "JOIN " + table + " " + alias + " ON (" + condition + ") "
 	return b
 }
 
-func (b *QueryBuilder) InnerJoin(table string, condition string) *QueryBuilder {
-	b.stmtFrom += "INNER JOIN " + table + " ON (" + condition + ") "
+func (b *QueryBuilder) InnerJoin(table string, alias string, condition string) *QueryBuilder {
+	b.stmtFrom += "INNER JOIN " + table + " " + alias + " ON (" + condition + ") "
 	return b
 }
 
-func (b *QueryBuilder) LeftJoin(table string, condition string) *QueryBuilder {
-	b.stmtFrom += "LEFT JOIN " + table + " ON (" + condition + ") "
+func (b *QueryBuilder) LeftJoin(table string, alias string, condition string) *QueryBuilder {
+	b.stmtFrom += "LEFT JOIN " + table + " " + alias + " ON (" + condition + ") "
 	return b
 }
 
-func (b *QueryBuilder) RightJoin(table string, condition string) *QueryBuilder {
-	b.stmtFrom += "RIGHT JOIN " + table + " ON (" + condition + ") "
+func (b *QueryBuilder) RightJoin(table string, alias string, condition string) *QueryBuilder {
+	b.stmtFrom += "RIGHT JOIN " + table + " " + alias + " ON (" + condition + ") "
 	return b
 }
 
@@ -80,11 +80,9 @@ func (b *QueryBuilder) Limit(limit int) *QueryBuilder {
 }
 
 func (b *QueryBuilder) Exec() error {
-	// log.Println(b.stmtSelect+b.stmtFrom+b.stmtWhere+b.stmtOrderBy, b.binds)
-	return b.db.Select(b.entity, b.stmtSelect+b.stmtFrom+b.stmtWhere+b.stmtOrderBy, b.binds...)
+	return b.db.Select(b.entity, b.stmtSelect+b.stmtFrom+b.stmtWhere+b.stmtGroupBy+b.stmtHaving+b.stmtOrderBy+b.stmtLimit, b.binds...)
 }
 
 func (b *QueryBuilder) ExecOne() error {
-	// log.Println(b.stmtSelect+b.stmtFrom+b.stmtWhere+b.stmtOrderBy, b.binds)
-	return b.db.Get(b.entity, b.stmtSelect+b.stmtFrom+b.stmtWhere+b.stmtOrderBy, b.binds...)
+	return b.db.Get(b.entity, b.stmtSelect+b.stmtFrom+b.stmtWhere+b.stmtGroupBy+b.stmtHaving+b.stmtOrderBy+b.stmtLimit, b.binds...)
 }
