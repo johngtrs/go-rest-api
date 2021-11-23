@@ -114,7 +114,7 @@ func (h *Handler) SearchTitle(c *gin.Context) {
 func (h *Handler) Create(c *gin.Context) {
 	var newMovie Movie
 
-	if err := c.BindJSON(&newMovie); err != nil {
+	if err := c.ShouldBindJSON(&newMovie); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
@@ -132,7 +132,7 @@ func (h *Handler) Create(c *gin.Context) {
 func (h *Handler) IncrementRentedNumber(c *gin.Context) {
 	var movie Movie
 
-	if err := c.BindJSON(&movie); err != nil {
+	if err := c.ShouldBindJSON(&movie); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}

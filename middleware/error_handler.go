@@ -1,22 +1,11 @@
 package middleware
 
 import (
-	"bytes"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/johngtrs/go-rest-api/httperror"
 )
-
-type bodyLogWriter struct {
-	gin.ResponseWriter
-	body *bytes.Buffer
-}
-
-func (w bodyLogWriter) Write(b []byte) (int, error) {
-	w.body.Write(b)
-	return w.ResponseWriter.Write(b)
-}
 
 func ErrorHandler(c *gin.Context) {
 	c.Next()

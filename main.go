@@ -8,6 +8,7 @@ import (
 	"github.com/johngtrs/go-rest-api/api"
 	"github.com/johngtrs/go-rest-api/database"
 	"github.com/johngtrs/go-rest-api/middleware"
+	"github.com/johngtrs/go-rest-api/validation"
 	"github.com/joho/godotenv"
 )
 
@@ -22,6 +23,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	validation.InitValidator()
 
 	db, err := database.Initialize()
 	if err != nil {
