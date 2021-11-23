@@ -7,13 +7,14 @@ import (
 	"github.com/johngtrs/go-rest-api/database"
 	"github.com/johngtrs/go-rest-api/glogger"
 	"github.com/johngtrs/go-rest-api/httperror"
+	"github.com/johngtrs/go-rest-api/model"
 )
 
 type AlbumRepository interface {
-	FindAll() ([]Album, error)
-	FindFirst(id string) (Album, error)
-	FindByArtist(name string) ([]Album, error)
-	AddAlbum(album Album) (int64, error)
+	FindAll() ([]model.Album, error)
+	FindFirst(id string) (model.Album, error)
+	FindByArtist(name string) ([]model.Album, error)
+	AddAlbum(album model.Album) (int64, error)
 }
 
 type Repository struct {
@@ -26,8 +27,8 @@ func NewAlbumRepository(db *sqlx.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) FindAll() ([]Album, error) {
-	var albums []Album
+func (r *Repository) FindAll() ([]model.Album, error) {
+	var albums []model.Album
 	builder := database.NewQueryBuilder(r.db, &albums)
 
 	err := builder.Select("*").From(table, "").Exec()
@@ -39,8 +40,8 @@ func (r *Repository) FindAll() ([]Album, error) {
 	return albums, nil
 }
 
-func (r *Repository) FindFirst(id string) (Album, error) {
-	var album Album
+func (r *Repository) FindFirst(id string) (model.Album, error) {
+	var album model.Album
 	builder := database.NewQueryBuilder(r.db, &album)
 
 	err := builder.Select("*").From(table, "").Where("id = ?", id).ExecOne()
@@ -55,8 +56,8 @@ func (r *Repository) FindFirst(id string) (Album, error) {
 	return album, nil
 }
 
-func (r *Repository) FindByArtist(name string) ([]Album, error) {
-	albums := []Album{}
+func (r *Repository) FindByArtist(name string) ([]model.Album, error) {
+	albums := []model.Album{}
 	builder := database.NewQueryBuilder(r.db, &albums)
 
 	err := builder.Select("*").From(table, "").Where("artist = ?", name).Exec()
@@ -68,7 +69,7 @@ func (r *Repository) FindByArtist(name string) ([]Album, error) {
 	return albums, nil
 }
 
-func (r *Repository) AddAlbum(album Album) (int64, error) {
+func (r *Repository) AddAlbum(album model.Album) (int64, error) {
 	result, err := r.db.Exec("INSERT INTO "+table+" (title, artist, price) VALUES (?, ?, ?)", album.Title, album.Artist, album.Price)
 	if err != nil {
 		glogger.Log("Album.AddAlbum", err.Error())

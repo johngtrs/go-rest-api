@@ -1,15 +1,17 @@
 package movie
 
+import "github.com/johngtrs/go-rest-api/model"
+
 type MovieService interface {
-	ListService() ([]Movie, error)
-	readByIdService(id string) (Movie, error)
-	Top100Service() ([]Movie, error)
-	Top100YearService(year string) ([]Movie, error)
-	MostRentedService() (Movie, error)
-	MostRentedYearService(year string) (Movie, error)
+	ListService() ([]model.Movie, error)
+	readByIdService(id string) (model.Movie, error)
+	Top100Service() ([]model.Movie, error)
+	Top100YearService(year string) ([]model.Movie, error)
+	MostRentedService() (model.Movie, error)
+	MostRentedYearService(year string) (model.Movie, error)
 	BestAuthorService() (map[string]string, error)
-	SearchByTitleService(title string) ([]Movie, error)
-	createService(movie Movie) (int64, error)
+	SearchByTitleService(title string) ([]model.Movie, error)
+	createService(movie model.Movie) (int64, error)
 	IncrementRentedNumberService(title string, year string) error
 }
 
@@ -21,27 +23,27 @@ func NewMovieService(repository MovieRepository) *Service {
 	return &Service{repository: repository}
 }
 
-func (s *Service) ListService() ([]Movie, error) {
+func (s *Service) ListService() ([]model.Movie, error) {
 	return s.repository.FindAll()
 }
 
-func (s *Service) readByIdService(id string) (Movie, error) {
+func (s *Service) readByIdService(id string) (model.Movie, error) {
 	return s.repository.FindFirst(id)
 }
 
-func (s *Service) Top100Service() ([]Movie, error) {
+func (s *Service) Top100Service() ([]model.Movie, error) {
 	return s.repository.MostRentedList("", 100)
 }
 
-func (s *Service) Top100YearService(year string) ([]Movie, error) {
+func (s *Service) Top100YearService(year string) ([]model.Movie, error) {
 	return s.repository.MostRentedList(year, 100)
 }
 
-func (s *Service) MostRentedService() (Movie, error) {
+func (s *Service) MostRentedService() (model.Movie, error) {
 	return s.repository.MostRented("")
 }
 
-func (s *Service) MostRentedYearService(year string) (Movie, error) {
+func (s *Service) MostRentedYearService(year string) (model.Movie, error) {
 	return s.repository.MostRented(year)
 }
 
@@ -57,11 +59,11 @@ func (s *Service) BestAuthorService() (map[string]string, error) {
 	return data, nil
 }
 
-func (s *Service) SearchByTitleService(title string) ([]Movie, error) {
+func (s *Service) SearchByTitleService(title string) ([]model.Movie, error) {
 	return s.repository.FindByTitle(title)
 }
 
-func (s *Service) createService(movie Movie) (int64, error) {
+func (s *Service) createService(movie model.Movie) (int64, error) {
 	return s.repository.AddMovie(movie)
 }
 

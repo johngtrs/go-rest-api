@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/johngtrs/go-rest-api/model"
 )
 
 type Handler struct {
@@ -46,7 +47,7 @@ func (h *Handler) ListByArtist(c *gin.Context) {
 }
 
 func (h *Handler) Create(c *gin.Context) {
-	var newAlbum Album
+	var newAlbum model.Album
 
 	if err := c.BindJSON(&newAlbum); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})

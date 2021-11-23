@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/johngtrs/go-rest-api/model"
 )
 
 type Handler struct {
@@ -112,7 +113,7 @@ func (h *Handler) SearchTitle(c *gin.Context) {
 }
 
 func (h *Handler) Create(c *gin.Context) {
-	var newMovie Movie
+	var newMovie model.Movie
 
 	if err := c.ShouldBindJSON(&newMovie); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -130,7 +131,7 @@ func (h *Handler) Create(c *gin.Context) {
 }
 
 func (h *Handler) IncrementRentedNumber(c *gin.Context) {
-	var movie Movie
+	var movie model.Movie
 
 	if err := c.ShouldBindJSON(&movie); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})

@@ -7,16 +7,17 @@ import (
 	"github.com/johngtrs/go-rest-api/database"
 	"github.com/johngtrs/go-rest-api/glogger"
 	"github.com/johngtrs/go-rest-api/httperror"
+	"github.com/johngtrs/go-rest-api/model"
 )
 
 type MovieRepository interface {
-	FindAll() ([]Movie, error)
-	FindFirst(id string) (Movie, error)
-	MostRentedList(year string, limit int) ([]Movie, error)
-	MostRented(year string) (Movie, error)
+	FindAll() ([]model.Movie, error)
+	FindFirst(id string) (model.Movie, error)
+	MostRentedList(year string, limit int) ([]model.Movie, error)
+	MostRented(year string) (model.Movie, error)
 	FindBestAuthor() (string, error)
-	FindByTitle(title string) ([]Movie, error)
-	AddMovie(movie Movie) (int64, error)
+	FindByTitle(title string) ([]model.Movie, error)
+	AddMovie(movie model.Movie) (int64, error)
 	IncrementRentedNumber(title string, year string) error
 }
 
@@ -31,8 +32,8 @@ func NewMovieRepository(db *sqlx.DB) *Repository {
 }
 
 // Get all movies.
-func (r *Repository) FindAll() ([]Movie, error) {
-	movies := []Movie{}
+func (r *Repository) FindAll() ([]model.Movie, error) {
+	movies := []model.Movie{}
 	builder := database.NewQueryBuilder(r.db, &movies)
 
 	err := builder.Select("*").From(table, "").Exec()
@@ -45,8 +46,8 @@ func (r *Repository) FindAll() ([]Movie, error) {
 }
 
 // Get the first movie with the requested id.
-func (r *Repository) FindFirst(id string) (Movie, error) {
-	var movie Movie
+func (r *Repository) FindFirst(id string) (model.Movie, error) {
+	var movie model.Movie
 	builder := database.NewQueryBuilder(r.db, &movie)
 
 	err := builder.Select("*").From(table, "").Where("id = ?", id).ExecOne()
@@ -64,8 +65,8 @@ func (r *Repository) FindFirst(id string) (Movie, error) {
 // Get the most rented movies with the requested year.
 // year parameter can be empty, in this case it will returns
 // the most rented movies all of the times.
-func (r *Repository) MostRentedList(year string, limit int) ([]Movie, error) {
-	movies := []Movie{}
+func (r *Repository) MostRentedList(year string, limit int) ([]model.Movie, error) {
+	movies := []model.Movie{}
 	var err error
 	builder := database.NewQueryBuilder(r.db, &movies)
 
@@ -95,8 +96,8 @@ func (r *Repository) MostRentedList(year string, limit int) ([]Movie, error) {
 // Get the most rented movie with the requested year.
 // year parameter can be empty, in this case it will returns
 // the most rented movie all of the times.
-func (r *Repository) MostRented(year string) (Movie, error) {
-	var movie Movie
+func (r *Repository) MostRented(year string) (model.Movie, error) {
+	var movie model.Movie
 	var err error
 	builder := database.NewQueryBuilder(r.db, &movie)
 
@@ -126,7 +127,7 @@ func (r *Repository) MostRented(year string) (Movie, error) {
 
 // Get the author with the higher rented number.
 func (r *Repository) FindBestAuthor() (string, error) {
-	var movie Movie
+	var movie model.Movie
 	builder := database.NewQueryBuilder(r.db, &movie)
 
 	err := builder.Select("author").
@@ -145,8 +146,8 @@ func (r *Repository) FindBestAuthor() (string, error) {
 }
 
 // Search movies by %title%.
-func (r *Repository) FindByTitle(title string) ([]Movie, error) {
-	movies := []Movie{}
+func (r *Repository) FindByTitle(title string) ([]model.Movie, error) {
+	movies := []model.Movie{}
 	builder := database.NewQueryBuilder(r.db, &movies)
 
 	err := builder.Select("*").
@@ -162,7 +163,7 @@ func (r *Repository) FindByTitle(title string) ([]Movie, error) {
 }
 
 // Create a new movie.
-func (r *Repository) AddMovie(movie Movie) (int64, error) {
+func (r *Repository) AddMovie(movie model.Movie) (int64, error) {
 	q := "INSERT INTO " + table +
 		" (year, rent_number, title, author, editor, `index`, bib, ref, cat_1, cat_2) " +
 		"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -185,7 +186,7 @@ func (r *Repository) AddMovie(movie Movie) (int64, error) {
 
 // Increment the rented number with the requested title and year.
 func (r *Repository) IncrementRentedNumber(title string, year string) error {
-	var movie Movie
+	var movie model.Movie
 	builder := database.NewQueryBuilder(r.db, &movie)
 
 	// Check if the movie exists
