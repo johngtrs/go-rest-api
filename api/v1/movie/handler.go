@@ -116,7 +116,8 @@ func (h *Handler) Create(c *gin.Context) {
 	var newMovie model.Movie
 
 	if err := c.ShouldBindJSON(&newMovie); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 
@@ -134,7 +135,8 @@ func (h *Handler) IncrementRentedNumber(c *gin.Context) {
 	var movie model.Movie
 
 	if err := c.ShouldBindJSON(&movie); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 

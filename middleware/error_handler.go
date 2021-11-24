@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/johngtrs/go-rest-api/httperror"
+	"github.com/johngtrs/go-rest-api/validation"
 )
 
 func ErrorHandler(c *gin.Context) {
@@ -23,10 +24,21 @@ func ErrorHandler(c *gin.Context) {
 	}
 
 	for _, err := range c.Errors {
+		errorMsg := validation.ErrorMessages(err.Err)
+		if errorMsg != nil {
+			c.JSON(http.StatusBadRequest, validation.ErrorMessages(err.Err))
+			return
+		}
+
 		// Check if the current error exists in the responseErrors array
 		if code, ok := responseErrors[err.Err]; ok {
 			c.JSON(code, gin.H{"error": err.Err.Error()})
 			return
 		}
+	}
+
+	// Return 400 Bad request for non handled errors
+	if len(c.Errors) > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": httperror.ErrBadRequest.Error()})
 	}
 }

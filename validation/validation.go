@@ -8,7 +8,6 @@ import (
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/johngtrs/go-rest-api/httperror"
 )
 
 type ApiError struct {
@@ -23,6 +22,12 @@ func msgForTag(fe validator.FieldError) string {
 		return "This field is required"
 	case "email":
 		return "Invalid email"
+	case "max":
+		// Handle string
+		return fe.Param() + " characters max"
+	case "lt":
+		// Handle numeric
+		return "The number should be less than " + fe.Param()
 	}
 	return fe.Error()
 }
@@ -42,8 +47,8 @@ func InitValidator() {
 
 // Return the JSON response object error
 func ErrorMessages(err error) map[string]interface{} {
-	var ve validator.ValidationErrors
 	// Check if the errors are type of ValidationErrors
+	var ve validator.ValidationErrors
 	if errors.As(err, &ve) {
 		out := make([]ApiError, len(ve))
 		for i, fe := range ve {
@@ -58,6 +63,10 @@ func ErrorMessages(err error) map[string]interface{} {
 		return map[string]interface{}{"error": ute.Error()}
 	}
 
-	// Default error
-	return map[string]interface{}{"error": httperror.ErrBadRequest.Error()}
+	var jse *json.SyntaxError
+	if errors.As(err, &jse) {
+		return map[string]interface{}{"error": "Invalid JSON format"}
+	}
+
+	return nil
 }

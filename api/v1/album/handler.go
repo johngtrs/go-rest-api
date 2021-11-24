@@ -49,14 +49,16 @@ func (h *Handler) ListByArtist(c *gin.Context) {
 func (h *Handler) Create(c *gin.Context) {
 	var newAlbum model.Album
 
-	if err := c.BindJSON(&newAlbum); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+	if err := c.ShouldBindJSON(&newAlbum); err != nil {
+		c.Error(err)
+		c.Abort()
 		return
 	}
 
 	albumID, err := h.service.createService(newAlbum)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.Error(err)
+		c.Abort()
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"id": albumID})
