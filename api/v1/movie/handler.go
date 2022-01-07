@@ -1,6 +1,7 @@
 package movie
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -134,7 +135,7 @@ func (h *Handler) Create(c *gin.Context) {
 func (h *Handler) IncrementRentedNumber(c *gin.Context) {
 	var movie model.Movie
 
-	if err := c.ShouldBindJSON(&movie); err != nil {
+	if err := json.NewDecoder(c.Request.Body).Decode(&movie); err != nil {
 		c.Error(err)
 		c.Abort()
 		return

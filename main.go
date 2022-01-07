@@ -13,6 +13,11 @@ import (
 )
 
 func main() {
+	app := setupRouter()
+	app.Run(":" + os.Getenv("GO_LOCAL_PORT"))
+}
+
+func setupRouter() *gin.Engine {
 	var err error
 	if os.Getenv("GO_ENV") == "DOCKER-DEV" {
 		err = godotenv.Load(".env.docker")
@@ -32,9 +37,8 @@ func main() {
 	}
 
 	app := gin.Default()
-
 	app.Use(middleware.ErrorHandler)
-
 	api.BuildRoutes(app, db)
-	app.Run(":" + os.Getenv("GO_LOCAL_PORT"))
+
+	return app
 }
